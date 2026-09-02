@@ -336,30 +336,47 @@ const FilterEngine = (() => {
 
         if (matchFound) {
             const entry = rawLatest.close;
-            let sl, t1, t2, risk, riskPct;
+            let initialSL, trailingSL, t1, t2, risk, riskPct;
+
             if (testTrend === 'bullish') {
-                sl = finalC1.low;
-                risk = Math.max(0.05, entry - sl);
+                initialSL = finalC2.low;
+                trailingSL = sequenceIndices.length > 3 
+                    ? haCandles[sequenceIndices[sequenceIndices.length - 2]].low 
+                    : finalC2.low;
+                
+                risk = Math.max(0.05, entry - initialSL);
                 riskPct = (risk / entry) * 100;
                 t1 = entry + risk * 1.5;
                 t2 = entry + risk * 2.0;
             } else {
-                sl = finalC1.high;
-                risk = Math.max(0.05, sl - entry);
+                initialSL = finalC2.high;
+                trailingSL = sequenceIndices.length > 3 
+                    ? haCandles[sequenceIndices[sequenceIndices.length - 2]].high 
+                    : finalC2.high;
+                
+                risk = Math.max(0.05, initialSL - entry);
                 riskPct = (risk / entry) * 100;
                 t1 = entry - risk * 1.5;
                 t2 = entry - risk * 2.0;
             }
 
+            const isTrailed = sequenceIndices.length > 3;
+            const currentSL = trailingSL;
+            const currentRiskPct = parseFloat((Math.abs(entry - currentSL) / entry * 100).toFixed(2));
+
             const levels = {
                 entry: parseFloat(entry.toFixed(2)),
-                sl: parseFloat(sl.toFixed(2)),
+                initialSL: parseFloat(initialSL.toFixed(2)),
+                trailingSL: parseFloat(trailingSL.toFixed(2)),
+                sl: parseFloat(currentSL.toFixed(2)),
                 risk: parseFloat(risk.toFixed(2)),
                 riskPct: parseFloat(riskPct.toFixed(2)),
+                currentRiskPct,
                 t1: parseFloat(t1.toFixed(2)),
                 t2: parseFloat(t2.toFixed(2)),
                 rr: '1:2',
-                slRef: testTrend === 'bullish' ? 'C1 Low' : 'C1 High'
+                slRef: isTrailed ? 'Trail SL' : (testTrend === 'bullish' ? 'C2 Low' : 'C2 High'),
+                isTrailed
             };
 
             bestResult = {
