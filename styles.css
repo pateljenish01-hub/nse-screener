@@ -569,6 +569,50 @@ html, body {
 .failed-log-reason { color: var(--text-muted); flex: 1; line-height: 1.4; }
 .failed-log-time   { color: var(--text-muted); font-size: 9px; flex-shrink: 0; margin-top: 1px; }
 
+/* ── Mobile Responsive Styles (Portrait & Landscape Phone UI) ───── */
+@media (max-width: 900px) {
+  .app-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-height: 38vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .chart-main {
+    flex: 1;
+    min-height: 60vh;
+  }
+  .header {
+    padding: 6px 10px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header-logo h1 { font-size: 13px; }
+  .header-logo span { display: none; }
+  .header-stats { gap: 10px; }
+  .stat-chip strong { font-size: 11px; }
+  .stat-chip span { font-size: 8px; }
+  .header-actions .btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .condition-strip {
+    flex-wrap: wrap;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .cond-box {
+    flex: 1 1 48%;
+    padding: 5px 8px;
+  }
+}
+
 
 
 
