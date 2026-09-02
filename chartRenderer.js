@@ -1,4 +1,4 @@
-﻿// chartRenderer.js â€” TradingView-Style Candlestick Chart Engine
+// chartRenderer.js â€” TradingView-Style Candlestick Chart Engine
 // Renders interactive candlestick charts on HTML5 Canvas
 
 class CandlestickChart {
@@ -345,12 +345,27 @@ class CandlestickChart {
     for (let i = start; i < end; i += step) {
       const c = this.candles[i];
       const x = this._xForIndex(i);
-      const label = new Date(c.time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      const label = this._formatDateLabel(c, false);
       ctx.fillText(label, x, y);
     }
   }
 
-  // â”€â”€ Draw: OHLC Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  _formatDateLabel(c, full = false) {
+    if (c && c.date) {
+      const parts = c.date.split('-');
+      if (parts.length === 3) {
+        const year = parts[0];
+        const monthIndex = parseInt(parts[1], 10) - 1;
+        const day = parts[2];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthName = monthNames[monthIndex] || parts[1];
+        return full ? `${day} ${monthName} ${year}` : `${day} ${monthName}`;
+      }
+    }
+    return new Date(c.time).toLocaleDateString('en-IN', full ? { day: '2-digit', month: 'short', year: 'numeric' } : { day: '2-digit', month: 'short' });
+  }
+
+  // ── Draw: OHLC Header ─────────────────────────────────────────────
   _drawHeader() {
     const ctx = this.ctx;
     const latest = this.candles[this.candles.length - 1];
@@ -365,7 +380,7 @@ class CandlestickChart {
     ctx.fillStyle = '#0f172a';
     ctx.font = 'bold 13px Inter, sans-serif';
     ctx.textAlign = 'left';
-    const title = `${this.symbol.replace('.NS', '')} Â· 1D Â· NSE`;
+    const title = `${this.symbol.replace('.NS', '')} · 1D · NSE`;
     ctx.fillText(title, this.padding.left + 4, 22);
 
     // OHLC values
@@ -484,7 +499,7 @@ class CandlestickChart {
 
   _drawTooltip(c, x, y) {
     const ctx = this.ctx;
-    const date = new Date(c.time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const date = this._formatDateLabel(c, true);
     const lines = [
       date,
       `O: ${this._formatPrice(c.open)}  H: ${this._formatPrice(c.high)}`,
