@@ -436,14 +436,14 @@ const App = (() => {
     toast(`Exported CSV successfully!`, 'success');
   }
 
-  //  Schedule Daily Auto-Refresh 
+  // ── Schedule Daily Auto-Refresh ──────────────────────────────────
   function scheduleAutoRefresh() {
-    // Calculate time until next NSE market close (3:30 PM IST)
+    // Calculate time until 4:30 PM IST
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000;
     const nowIST = new Date(now.getTime() + istOffset);
     const closeIST = new Date(nowIST);
-    closeIST.setHours(15, 35, 0, 0); // 3:35 PM IST (5 min after close)
+    closeIST.setHours(16, 30, 0, 0); // 4:30 PM IST
 
     if (nowIST > closeIST) closeIST.setDate(closeIST.getDate() + 1);
 
@@ -451,7 +451,7 @@ const App = (() => {
     console.log(`[AutoRefresh] Next scan scheduled in ${Math.round(msUntilClose / 60000)} minutes`);
 
     setTimeout(() => {
-      toast(' Auto-refreshing data (NSE market close)', 'info');
+      toast('🔔 Auto-refreshing data (4:30 PM IST)', 'info');
       DataFetcher.clearCache();
       runScan(true);
       // Re-schedule for next day
