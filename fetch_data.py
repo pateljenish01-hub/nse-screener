@@ -66,7 +66,6 @@ def fetch_symbol(sym):
             if candles:
                 return sym, candles
     except Exception as e:
-        # print(f"Error {sym}: {e}")
         pass
     return sym, None
 

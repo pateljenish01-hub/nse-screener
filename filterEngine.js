@@ -335,11 +335,39 @@ const FilterEngine = (() => {
         const changePct = ((rawLatest.close - rawPrev.close) / rawPrev.close * 100);
 
         if (matchFound) {
+            const entry = rawLatest.close;
+            let sl, t1, t2, risk, riskPct;
+            if (testTrend === 'bullish') {
+                sl = finalC1.low;
+                risk = Math.max(0.05, entry - sl);
+                riskPct = (risk / entry) * 100;
+                t1 = entry + risk * 1.5;
+                t2 = entry + risk * 2.0;
+            } else {
+                sl = finalC1.high;
+                risk = Math.max(0.05, sl - entry);
+                riskPct = (risk / entry) * 100;
+                t1 = entry - risk * 1.5;
+                t2 = entry - risk * 2.0;
+            }
+
+            const levels = {
+                entry: parseFloat(entry.toFixed(2)),
+                sl: parseFloat(sl.toFixed(2)),
+                risk: parseFloat(risk.toFixed(2)),
+                riskPct: parseFloat(riskPct.toFixed(2)),
+                t1: parseFloat(t1.toFixed(2)),
+                t2: parseFloat(t2.toFixed(2)),
+                rr: '1:2',
+                slRef: testTrend === 'bullish' ? 'C1 Low' : 'C1 High'
+            };
+
             bestResult = {
                 symbol, meta, pass: true, trend: testTrend, sequenceIndices,
                 conditions: { c1: finalR1, c2: finalR2, c3: finalR3 },
                 haCandles: { c1: finalC1, c2: finalC2, c3: finalC3 },
                 allHACandles: haCandles, allCandles: rawCandles,
+                levels,
                 stats: {
                     latestClose: rawLatest.close, haClose: haCandles[len - 1].close,
                     changePct: parseFloat(changePct.toFixed(2)),

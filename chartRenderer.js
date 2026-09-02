@@ -103,7 +103,16 @@ class CandlestickChart {
       if (c.high > max) max = c.high;
       if (c.low < min) min = c.low;
     }
-    const pad = (max - min) * 0.06;
+    if (this.matchResult && this.matchResult.levels) {
+      const { sl, t1, t2, entry } = this.matchResult.levels;
+      [sl, t1, t2, entry].forEach(p => {
+        if (p && !isNaN(p)) {
+          if (p > max) max = p;
+          if (p < min) min = p;
+        }
+      });
+    }
+    const pad = (max - min) * 0.08;
     return { min: min - pad, max: max + pad };
   }
 
@@ -143,6 +152,7 @@ class CandlestickChart {
     this._drawTimeAxis(start, end, vis, candleW);
     this._drawHeader();
     this._drawHighlightAnnotations(start, end, priceMin, priceMax, candleW);
+    this._drawTradeLevels(priceMin, priceMax);
     if (this.crosshairX >= 0) this._drawCrosshair(priceMin, priceMax);
   }
 
@@ -449,6 +459,50 @@ class CandlestickChart {
       ctx.lineTo(x, this.padding.top + this.chartH);
       ctx.stroke();
       ctx.setLineDash([]);
+    });
+  }
+
+  // ── Draw: Trade Levels (Entry, Stop Loss, Target 1, Target 2) ──────
+  _drawTradeLevels(priceMin, priceMax) {
+    if (!this.matchResult || !this.matchResult.levels) return;
+    const { entry, sl, t1, t2, slRef } = this.matchResult.levels;
+    const ctx = this.ctx;
+    const axisX = this.padding.left + this.chartW;
+
+    const levels = [
+      { label: `SL (${slRef || 'C1'})`, price: sl, color: '#ef5350', bg: 'rgba(239, 83, 80, 0.9)' },
+      { label: 'Entry', price: entry, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.9)' },
+      { label: 'TGT 1 (1:1.5)', price: t1, color: '#10b981', bg: 'rgba(16, 185, 129, 0.9)' },
+      { label: 'TGT 2 (1:2)', price: t2, color: '#059669', bg: 'rgba(5, 150, 105, 0.9)' },
+    ];
+
+    levels.forEach(lvl => {
+      if (!lvl.price || isNaN(lvl.price)) return;
+      const y = this._yForPrice(lvl.price, priceMin, priceMax);
+      if (y < this.padding.top - 5 || y > this.padding.top + this.chartH + 5) return;
+
+      // Dashed horizontal price line across chart
+      ctx.strokeStyle = lvl.color;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(this.padding.left, y);
+      ctx.lineTo(axisX, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Level pill badge on right axis
+      const badgeW = this.priceAxisWidth - 4;
+      const badgeH = 16;
+      ctx.fillStyle = lvl.bg;
+      ctx.beginPath();
+      ctx.roundRect(axisX + 2, y - badgeH / 2, badgeW, badgeH, 3);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${lvl.label}: ${this._formatPrice(lvl.price)}`, axisX + 4, y + 3.5);
     });
   }
 

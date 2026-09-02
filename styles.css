@@ -441,6 +441,39 @@ html, body {
 .cond-fail { color: var(--bear); }
 .cond-icon { font-size: 10px; margin-right: 3px; }
 
+.cond-plan {
+  background: rgba(33, 150, 243, 0.05);
+  border-left: 2px solid var(--accent);
+}
+.plan-pill {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 9.5px;
+  margin-right: 4px;
+  margin-top: 2px;
+}
+.plan-pill.sl { background: rgba(239, 83, 80, 0.15); color: var(--bear); }
+.plan-pill.tgt { background: rgba(38, 166, 154, 0.15); color: var(--bull); }
+.plan-pill.entry { background: rgba(33, 150, 243, 0.15); color: var(--accent); }
+
+.item-levels {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  flex-wrap: wrap;
+}
+.lvl-tag {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.lvl-sl { background: rgba(239, 83, 80, 0.12); color: #ef5350; }
+.lvl-tgt { background: rgba(38, 166, 154, 0.12); color: #26a69a; }
+.lvl-rr { background: rgba(100, 116, 139, 0.12); color: #64748b; font-size: 8.5px; }
+
 /* â”€â”€ Toast Notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #toast-container {
   position: fixed; bottom: 20px; right: 20px; z-index: 9999;

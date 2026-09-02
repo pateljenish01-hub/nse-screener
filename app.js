@@ -207,7 +207,13 @@ const App = (() => {
     const shortSym = symbol.replace('.NS', '');
     const isBull = trend === 'bullish';
     const changeCls = stats.changePct >= 0 ? 'bull' : 'bear';
-    const changeStr = `${stats.changePct >= 0 ? '+' : ''}${stats.changePct}%`;
+    const lvl = result.levels || {};
+    const levelsHtml = lvl.sl ? `
+      <div class="item-levels">
+        <span class="lvl-tag lvl-sl">SL: ₹${lvl.sl}</span>
+        <span class="lvl-tag lvl-tgt">TGT: ₹${lvl.t2}</span>
+        <span class="lvl-tag lvl-rr">1:2</span>
+      </div>` : '';
 
     const item = document.createElement('div');
     item.className = 'screener-item fade-in';
@@ -217,6 +223,7 @@ const App = (() => {
         <div class="item-symbol">${shortSym}</div>
         <div class="item-name">${meta.name || shortSym}</div>
         <div class="badge-sector">${meta.sector || ''}</div>
+        ${levelsHtml}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
         <span class="item-badge ${isBull ? 'badge-bull' : 'badge-bear'}">${trend.toUpperCase()}</span>
@@ -359,17 +366,30 @@ const App = (() => {
         </div>
       `;
     });
+
+    const planBox = document.getElementById('cond-plan-value');
+    if (planBox && result.levels) {
+      const lvl = result.levels;
+      planBox.innerHTML = `
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+          <span class="plan-pill entry">Entry: ₹${lvl.entry}</span>
+          <span class="plan-pill sl">SL (${lvl.slRef}): ₹${lvl.sl} (-${lvl.riskPct}%)</span>
+          <span class="plan-pill tgt">TGT 1 (1:1.5): ₹${lvl.t1}</span>
+          <span class="plan-pill tgt">TGT 2 (1:2): ₹${lvl.t2}</span>
+        </div>
+      `;
+    }
   }
 
-  //  Export Matched to CSV 
+  // ── Export Matched to CSV ─────────────────────────────────────────
   function exportCSV() {
     if (!state.matched.length) { toast('No results to export', 'error'); return; }
     
     const bullish = state.matched.filter(r => r.trend === 'bullish');
     const bearish = state.matched.filter(r => r.trend === 'bearish');
 
-    let csv = "BULLISH,,,,BEARISH,,,\n";
-    csv += "Sr.no,Script,LTP,Lot size,Sr.no,Script,LTP,Lot size\n";
+    let csv = "BULLISH,,,,,,,,BEARISH,,,,,,,\n";
+    csv += "Sr.no,Script,LTP,Lot size,Stop Loss,Target 1 (1:1.5),Target 2 (1:2),Risk %,Sr.no,Script,LTP,Lot size,Stop Loss,Target 1 (1:1.5),Target 2 (1:2),Risk %\n";
 
     const maxLen = Math.max(bullish.length, bearish.length);
     
@@ -382,9 +402,10 @@ const App = (() => {
             const lot = (typeof LOT_SIZES !== 'undefined' && LOT_SIZES[b.symbol]) ? LOT_SIZES[b.symbol] : '';
             const ltp = fmtPrice(b.stats.latestClose);
             const shortSym = b.symbol.replace('.NS', '');
-            row.push(i + 1, shortSym, ltp, lot);
+            const lvl = b.levels || {};
+            row.push(i + 1, shortSym, ltp, lot, lvl.sl || '', lvl.t1 || '', lvl.t2 || '', lvl.riskPct ? `${lvl.riskPct}%` : '');
         } else {
-            row.push('', '', '', '');
+            row.push('', '', '', '', '', '', '', '');
         }
 
         // Bearish Side
@@ -393,9 +414,10 @@ const App = (() => {
             const lot = (typeof LOT_SIZES !== 'undefined' && LOT_SIZES[b.symbol]) ? LOT_SIZES[b.symbol] : '';
             const ltp = fmtPrice(b.stats.latestClose);
             const shortSym = b.symbol.replace('.NS', '');
-            row.push(i + 1, shortSym, ltp, lot);
+            const lvl = b.levels || {};
+            row.push(i + 1, shortSym, ltp, lot, lvl.sl || '', lvl.t1 || '', lvl.t2 || '', lvl.riskPct ? `${lvl.riskPct}%` : '');
         } else {
-            row.push('', '', '', '');
+            row.push('', '', '', '', '', '', '', '');
         }
 
         csv += row.map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(",") + "\n";
