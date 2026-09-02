@@ -569,37 +569,54 @@ html, body {
 .failed-log-reason { color: var(--text-muted); flex: 1; line-height: 1.4; }
 .failed-log-time   { color: var(--text-muted); font-size: 9px; flex-shrink: 0; margin-top: 1px; }
 
-/* ── Mobile Responsive Styles (Portrait & Landscape Phone UI) ───── */
-@media (max-width: 900px) {
-  body {
-    overflow-y: auto;
+/* ── Mobile Responsive Styles ─────────────────────────────────────── */
+
+/* 1. Mobile Portrait (Vertical Phone) */
+@media (max-width: 768px) and (orientation: portrait) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
   }
   .app-container {
-    flex-direction: column;
-    height: auto;
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
     min-height: calc(100vh - var(--header-h));
-    overflow-y: visible;
+    overflow: visible !important;
   }
   .sidebar {
     width: 100% !important;
     min-width: 100% !important;
-    max-height: 32vh;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    height: 360px !important;
+    max-height: none !important;
+    border-right: none !important;
+    border-bottom: 2px solid var(--border) !important;
+    flex-shrink: 0 !important;
+  }
+  .screener-list {
+    flex: 1 !important;
+    min-height: 220px !important;
+    overflow-y: auto !important;
   }
   .chart-main {
-    width: 100%;
-    min-height: 440px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    width: 100% !important;
+    min-height: 480px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   .chart-canvas-container {
-    width: 100%;
-    min-height: 340px;
-    flex: 1;
-    position: relative;
+    width: 100% !important;
+    height: 360px !important;
+    min-height: 360px !important;
+    position: relative !important;
+  }
+  .condition-strip {
+    flex-wrap: wrap !important;
+  }
+  .cond-box {
+    flex: 1 1 48% !important;
+    padding: 6px 8px !important;
   }
   .header {
     padding: 6px 10px;
@@ -607,21 +624,63 @@ html, body {
     flex-wrap: wrap;
     gap: 8px;
   }
-  .header-logo h1 { font-size: 13px; }
   .header-logo span { display: none; }
-  .header-stats { gap: 10px; }
-  .stat-chip strong { font-size: 11px; }
-  .stat-chip span { font-size: 8px; }
+}
+
+/* 2. Mobile Landscape (Horizontal Phone) */
+@media (max-height: 500px) {
+  html, body {
+    overflow: hidden !important;
+    height: 100% !important;
+  }
+  .app-container {
+    display: flex !important;
+    flex-direction: row !important;
+    height: calc(100vh - 40px) !important;
+    overflow: hidden !important;
+  }
+  .sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    height: 100% !important;
+    max-height: none !important;
+    border-right: 1px solid var(--border) !important;
+    border-bottom: none !important;
+    flex-shrink: 0 !important;
+  }
+  .screener-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+  }
+  .chart-main {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .chart-canvas-container {
+    flex: 1 !important;
+    min-height: 0 !important;
+    position: relative !important;
+  }
+  .header {
+    height: 38px !important;
+    padding: 2px 8px !important;
+  }
+  .header-logo h1 { font-size: 12px !important; }
+  .header-logo span { display: none !important; }
+  .header-stats { gap: 8px !important; }
+  .stat-chip strong { font-size: 11px !important; }
+  .stat-chip span { font-size: 7.5px !important; }
   .header-actions .btn {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
   }
   .condition-strip {
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
   }
   .cond-box {
-    flex: 1 1 48%;
-    padding: 5px 8px;
+    padding: 3px 6px !important;
   }
 }
 
