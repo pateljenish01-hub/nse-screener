@@ -51,24 +51,32 @@ class CandlestickChart {
     this.viewCount = Math.min(60, this.candles.length);
     this.viewStart = Math.max(0, this.candles.length - this.viewCount);
 
-    this._render();
+    this._resize();
   }
 
-  // â”€â”€ Resize Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Resize Canvas ─────────────────────────────────────────────────
   _resize() {
-    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const parent = this.canvas ? this.canvas.parentElement : null;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    const w = Math.max(280, rect.width || (window.innerWidth < 768 ? window.innerWidth : 600));
+    const h = Math.max(280, rect.height || 400);
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
-    this.canvas.style.width = rect.width + 'px';
-    this.canvas.style.height = rect.height + 'px';
+
+    this.canvas.width = w * dpr;
+    this.canvas.height = h * dpr;
+    this.canvas.style.width = w + 'px';
+    this.canvas.style.height = h + 'px';
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.scale(dpr, dpr);
     this._render();
   }
 
   _startResizeObserver() {
     const ro = new ResizeObserver(() => this._resize());
-    ro.observe(this.canvas.parentElement);
+    if (this.canvas && this.canvas.parentElement) {
+      ro.observe(this.canvas.parentElement);
+    }
     setTimeout(() => this._resize(), 50);
   }
 

@@ -32,10 +32,29 @@
   });
 </script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NSE 500  3-Candle Pattern Screener</title>
-  <meta name="description" content="Portable NSE 500 stock screener filtering stocks based on a 3-candle pattern: double-wick indecision, directional probe, and body crossover confirmation." />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>NSE 500 · 3-Candle Pattern Screener</title>
+  <meta name="description" content="Portable NSE 500 stock screener filtering stocks based on a 3-candle pattern." />
+  <script>
+    document.write('<link rel="stylesheet" href="styles.css?v=' + Date.now() + '" />');
+  </script>
+  <style>
+    /* Instant Critical Mobile Styles (Bypasses all cache) */
+    @media (max-width: 768px) and (orientation: portrait) {
+      html, body { overflow-y: auto !important; height: auto !important; }
+      .app-container { display: flex !important; flex-direction: column !important; height: auto !important; overflow: visible !important; }
+      .sidebar { width: 100% !important; min-width: 100% !important; height: 350px !important; border-right: none !important; border-bottom: 2px solid var(--border) !important; }
+      .screener-list { flex: 1 !important; min-height: 200px !important; overflow-y: auto !important; }
+      .chart-main { width: 100% !important; min-height: 480px !important; display: flex !important; flex-direction: column !important; }
+      .chart-canvas-container { width: 100% !important; height: 360px !important; min-height: 360px !important; position: relative !important; }
+    }
+    @media (max-height: 500px) {
+      html, body { overflow: hidden !important; height: 100% !important; }
+      .app-container { display: flex !important; flex-direction: row !important; height: calc(100vh - 40px) !important; }
+      .sidebar { width: 250px !important; min-width: 250px !important; height: 100% !important; }
+      .chart-main { flex: 1 !important; height: 100% !important; }
+    }
+  </style>
 </head>
 <body>
 
