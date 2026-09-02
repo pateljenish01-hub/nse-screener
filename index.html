@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  window.addEventListener('error', function(e) {
+    const d = document.createElement('div');
+    d.style.position = 'fixed';
+    d.style.top = '0';
+    d.style.left = '0';
+    d.style.width = '100%';
+    d.style.background = 'red';
+    d.style.color = 'white';
+    d.style.zIndex = '999999';
+    d.style.padding = '20px';
+    d.style.fontSize = '20px';
+    d.innerText = 'ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+    document.body.appendChild(d);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    const d = document.createElement('div');
+    d.style.position = 'fixed';
+    d.style.top = '50px';
+    d.style.left = '0';
+    d.style.width = '100%';
+    d.style.background = 'orange';
+    d.style.color = 'black';
+    d.style.zIndex = '999999';
+    d.style.padding = '20px';
+    d.style.fontSize = '20px';
+    d.innerText = 'PROMISE REJECTION: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+    document.body.appendChild(d);
+  });
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSE 500  3-Candle Pattern Screener</title>
+  <meta name="description" content="Portable NSE 500 stock screener filtering stocks based on a 3-candle pattern: double-wick indecision, directional probe, and body crossover confirmation." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- 
+     SCAN PROGRESS OVERLAY
+ -->
+<div id="scan-overlay">
+  <div class="scan-card">
+    <div class="scan-logo"></div>
+    <h2>Scanning NSE 500</h2>
+    <p>Fetching daily candle data &amp; applying 3-candle pattern filter</p>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="scan-status">
+      <span id="progress-pct">0%</span> complete
+    </div>
+    <div class="scan-sub" id="progress-sub">
+      Initialising data fetch
+    </div>
+    <div style="margin-top:12px; font-size:11px; color:var(--text-muted)">
+      Matched so far: <span class="scan-match-count" id="matched-count">0</span> stocks
+    </div>
+  </div>
+</div>
+
+<!-- 
+     TOP HEADER
+ -->
+<header class="header">
+  <!-- Logo -->
+  <div class="header-logo">
+    <div class="logo-icon">N</div>
+    <h1>NSE Screener</h1>
+    <span>3-Candle Pattern</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="header-stats">
+    <div class="stat-chip matched">
+      <strong id="stat-matched"></strong>
+      <span>Matched</span>
+    </div>
+    <div class="stat-chip">
+      <strong id="stat-total"></strong>
+      <span>Scanned</span>
+    </div>
+    <div class="stat-chip failed">
+      <strong id="stat-failed"></strong>
+      <span>No Pattern</span>
+    </div>
+    <div class="stat-chip">
+      <strong id="stat-time"></strong>
+      <span style="font-size:9px" id="last-scan-time">Not scanned</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="header-actions">
+    <button class="btn" id="refresh-btn" title="Clear cache and re-scan">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Refresh
+    </button>
+        <button id="scan-btn" class="primary-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Run Scan
+        </button>
+        <button id="export-btn" class="secondary-btn" style="padding: 8px 16px; background: #fff; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV
+        </button>
+  </div>
+</header>
+
+<!--                                                                          
+     MAIN APP LAYOUT
+ -->
+<div class="app-layout">
+
+  <!-- 
+       SIDEBAR  SCREENER RESULTS
+   -->
+  <aside class="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <h2>Matched Scripts</h2>
+      <!-- Search -->
+      <div class="search-bar">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search symbol, name, sector"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <!-- Trend Filter Tags -->
+    <div class="filter-tags">
+      <button class="tag all-tag active" id="filter-all">All</button>
+      <button class="tag bull-tag" id="filter-bull"> Bullish</button>
+      <button class="tag bear-tag" id="filter-bear"> Bearish</button>
+    </div>
+
+    <!-- Screener Results List -->
+    <div class="screener-list" id="screener-list">
+      <div class="screener-empty">
+        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <p>Run a scan to see matched stocks</p>
+      </div>
+    </div>
+
+    <!-- Failed Tickers Log (collapsible) -->
+    <div id="failed-log-panel" style="display:none">
+      <div class="failed-log-header" id="failed-log-toggle">
+        <span> Failed Tickers</span>
+        <span id="failed-log-count" class="failed-badge">0</span>
+        <span id="failed-log-arrow" style="margin-left:auto"></span>
+      </div>
+      <div class="failed-log-body" id="failed-log-body"></div>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <small>NSE 500  Daily Candles  Auto-refresh 3:35 PM IST</small>
+      <button class="export-btn" id="export-btn"> CSV</button>
+    </div>
+  </aside>
+
+  <!-- 
+       CHART AREA
+   -->
+  <main class="chart-area">
+
+    <!-- Chart Toolbar -->
+    <div class="chart-toolbar">
+      <div class="timeframe-btns">
+        <button class="tf-btn active" id="tf-1d">1D</button>
+        <span style="margin-left:6px;font-size:10px;font-weight:700;color:#f6c90e;background:rgba(246,201,14,0.12);border:1px solid rgba(246,201,14,0.3);border-radius:4px;padding:2px 7px;">HEIKIN-ASHI</span>
+      </div>
+
+      <div class="chart-sep"></div>
+
+      <!-- Indicator Toggles -->
+      <button class="indicator-toggle active" id="toggle-sma20" title="Toggle 20-day SMA">
+        <span class="indicator-dot dot-sma20"></span>
+        SMA 20
+      </button>
+      <button class="indicator-toggle active" id="toggle-sma50" title="Toggle 50-day SMA">
+        <span class="indicator-dot dot-sma50"></span>
+        SMA 50
+      </button>
+
+      <div style="flex:1"></div>
+
+      <span style="font-size:10px; color:var(--text-muted)">
+         Drag to pan &nbsp;&nbsp; Scroll to zoom
+      </span>
+    </div>
+
+    <!-- Canvas Chart Container -->
+    <div class="chart-canvas-container" id="chart-canvas-container" style="display:none">
+      <canvas id="chart-canvas"></canvas>
+    </div>
+
+    <!-- No Chart State (shown before any stock selected) -->
+    <div class="no-chart-state" id="no-chart-state">
+      <div class="big-icon"></div>
+      <h3>No Stock Selected</h3>
+      <p>
+        Run a scan to find NSE 500 stocks matching the 3-candle pattern,
+        then click any result to view its TradingView-style chart.
+      </p>
+      <div style="margin-top:8px; font-size:11px; color:var(--text-muted); line-height:1.8">
+        <strong style="color:var(--text-secondary)">Pattern Logic (1D candles):</strong><br/>
+        Candle 1  wicks on both sides<br/>
+        Candle 2  one-sided wick matching trend<br/>
+        Candle 3  body crosses Candle 2's body
+      </div>
+    </div>
+
+    <!-- Condition Detail Strip (shown when stock is selected) -->
+    <div class="condition-strip" id="condition-strip" style="display:none">
+      <div class="cond-box" id="cond-box-1">
+        <div class="cond-label">Candle 1</div>
+        <div class="cond-value"></div>
+      </div>
+      <div class="cond-box" id="cond-box-2">
+        <div class="cond-label">Candle 2</div>
+        <div class="cond-value"></div>
+      </div>
+      <div class="cond-box" id="cond-box-3">
+        <div class="cond-label">Candle 3</div>
+        <div class="cond-value"></div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Data & Scripts (Cache-Busted for 100% Fresh Mobile Sync) -->
+  <script>
+    (function() {
+      const v = Date.now();
+      const scripts = [
+        'nse500.js',
+        'lot_sizes.js',
+        'chartRenderer.js',
+        'filterEngine.js',
+        'dataFetcher.js',
+        'market_data.js',
+        'app.js'
+      ];
+      scripts.forEach(function(src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
+</body>
+
+
+
