@@ -72,12 +72,24 @@ class CandlestickChart {
     setTimeout(() => this._resize(), 50);
   }
 
-  // â”€â”€ Coordinate Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Coordinate Helpers ─────────────────────────────────────────────
+  get isSmall() {
+    return this.totalH < 420 || this.totalW < 600;
+  }
+  get padTop() {
+    return this.isSmall ? 28 : 46;
+  }
+  get padBottom() {
+    return this.isSmall ? 22 : 45;
+  }
+  get volHeight() {
+    return this.isSmall ? 24 : 50;
+  }
   get chartW() {
-    return (this.canvas.width / (window.devicePixelRatio || 1)) - this.padding.left - this.priceAxisWidth;
+    return this.totalW - this.padding.left - this.priceAxisWidth;
   }
   get chartH() {
-    return (this.canvas.height / (window.devicePixelRatio || 1)) - this.padding.top - this.padding.bottom - this.volumePaneHeight - 8;
+    return Math.max(100, this.totalH - this.padTop - this.padBottom - this.volHeight - 4);
   }
   get totalW() { return this.canvas.width / (window.devicePixelRatio || 1); }
   get totalH() { return this.canvas.height / (window.devicePixelRatio || 1); }
@@ -89,7 +101,7 @@ class CandlestickChart {
   }
 
   _yForPrice(price, minPrice, maxPrice) {
-    return this.padding.top + this.chartH * (1 - (price - minPrice) / (maxPrice - minPrice));
+    return this.padTop + this.chartH * (1 - (price - minPrice) / (maxPrice - minPrice));
   }
 
   _getVisibleCandles() {
@@ -142,39 +154,16 @@ class CandlestickChart {
     const { min: priceMin, max: priceMax } = this._getPriceRange(vis);
     const volMax = this._getVolumeMax(vis);
     const candleW = this.chartW / this.viewCount;
-    const bodyW = Math.max(1, candleW * 0.6);
-
-    this._drawGrid(priceMin, priceMax);
-    this._drawSMA(start, end, priceMin, priceMax, candleW);
-    this._drawCandles(start, end, vis, priceMin, priceMax, candleW, bodyW);
-    this._drawVolume(start, end, vis, volMax, candleW);
-    this._drawPriceAxis(priceMin, priceMax);
-    this._drawTimeAxis(start, end, vis, candleW);
-    this._drawHeader();
-    this._drawHighlightAnnotations(start, end, priceMin, priceMax, candleW);
-    this._drawTradeLevels(priceMin, priceMax);
-    if (this.crosshairX >= 0) this._drawCrosshair(priceMin, priceMax);
-  }
-
-  // â”€â”€ Draw: Empty State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  _drawEmpty() {
-    const ctx = this.ctx;
-    ctx.fillStyle = '#64748b';
-    ctx.font = '16px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Select a stock to view chart', this.totalW / 2, this.totalH / 2);
-  }
-
-  // â”€â”€ Draw: Grid Lines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    cons  // ── Draw: Grid Lines ─────────────────────────────────────────────
   _drawGrid(priceMin, priceMax) {
     const ctx = this.ctx;
-    const steps = 6;
+    const steps = this.isSmall ? 4 : 6;
     ctx.strokeStyle = '#f1f5f9';
     ctx.lineWidth = 1;
     ctx.setLineDash([]);
 
     for (let i = 0; i <= steps; i++) {
-      const y = this.padding.top + (this.chartH / steps) * i;
+      const y = this.padTop + (this.chartH / steps) * i;
       ctx.beginPath();
       ctx.moveTo(this.padding.left, y);
       ctx.lineTo(this.padding.left + this.chartW, y);
@@ -182,7 +171,7 @@ class CandlestickChart {
     }
   }
 
-  // â”€â”€ Draw: SMA Overlays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: SMA Overlays ────────────────────────────────────────────
   _drawSMA(start, end, priceMin, priceMax, candleW) {
     const ctx = this.ctx;
     const drawLine = (smaArr, color) => {
@@ -206,7 +195,7 @@ class CandlestickChart {
     drawLine(this.sma50, '#2196F3');
   }
 
-  // â”€â”€ Draw: Candlesticks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Candlesticks ────────────────────────────────────────────
   _drawCandles(start, end, vis, priceMin, priceMax, candleW, bodyW) {
     const ctx = this.ctx;
     for (let i = start; i < end; i++) {
@@ -259,11 +248,11 @@ class CandlestickChart {
     }
   }
 
-  // â”€â”€ Draw: Volume Sub-pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Volume Sub-pane ─────────────────────────────────────────
   _drawVolume(start, end, vis, volMax, candleW) {
     const ctx = this.ctx;
-    const volTop = this.padding.top + this.chartH + 8;
-    const volH = this.volumePaneHeight;
+    const volTop = this.padTop + this.chartH + 4;
+    const volH = this.volHeight;
     const bodyW = Math.max(1, candleW * 0.6);
 
     // Volume separator line
@@ -285,23 +274,23 @@ class CandlestickChart {
 
     // Vol label
     ctx.fillStyle = '#64748b';
-    ctx.font = '10px Inter, sans-serif';
+    ctx.font = '9px Inter, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('VOL', this.padding.left + 4, volTop + 12);
+    ctx.fillText('VOL', this.padding.left + 4, volTop + 10);
   }
 
-  // â”€â”€ Draw: Price Axis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Price Axis ──────────────────────────────────────────────
   _drawPriceAxis(priceMin, priceMax) {
     const ctx = this.ctx;
     const axisX = this.padding.left + this.chartW;
-    const steps = 6;
+    const steps = this.isSmall ? 4 : 6;
     ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, sans-serif';
+    ctx.font = `${this.isSmall ? 9.5 : 11}px Inter, sans-serif`;
     ctx.textAlign = 'left';
 
     for (let i = 0; i <= steps; i++) {
       const price = priceMin + ((priceMax - priceMin) / steps) * (steps - i);
-      const y = this.padding.top + (this.chartH / steps) * i;
+      const y = this.padTop + (this.chartH / steps) * i;
 
       ctx.strokeStyle = '#f1f5f9';
       ctx.lineWidth = 1;
@@ -310,7 +299,7 @@ class CandlestickChart {
       ctx.lineTo(axisX + 6, y);
       ctx.stroke();
 
-      ctx.fillText(this._formatPrice(price), axisX + 8, y + 4);
+      ctx.fillText(this._formatPrice(price), axisX + 6, y + 3.5);
     }
 
     // Latest price badge (like TradingView)
@@ -320,16 +309,16 @@ class CandlestickChart {
       const isBull = latest.close >= (this.candles[this.candles.length - 2]?.close || latest.open);
 
       ctx.fillStyle = isBull ? '#26a69a' : '#ef5350';
-      const badgeW = 68;
-      const badgeH = 18;
+      const badgeW = this.priceAxisWidth - 6;
+      const badgeH = 16;
       ctx.beginPath();
       ctx.roundRect(axisX + 2, latestY - badgeH / 2, badgeW, badgeH, 3);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.font = 'bold 9.5px Inter, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(this._formatPrice(latest.close), axisX + 6, latestY + 4);
+      ctx.fillText(this._formatPrice(latest.close), axisX + 5, latestY + 3.5);
 
       // Dashed line to latest price
       ctx.strokeStyle = isBull ? '#26a69a' : '#ef5350';
@@ -343,13 +332,13 @@ class CandlestickChart {
     }
   }
 
-  // â”€â”€ Draw: Time Axis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Time Axis ───────────────────────────────────────────────
   _drawTimeAxis(start, end, vis, candleW) {
     const ctx = this.ctx;
-    const y = this.padding.top + this.chartH + this.volumePaneHeight + 18;
-    const step = Math.max(1, Math.floor(this.viewCount / 8));
+    const y = this.padTop + this.chartH + this.volHeight + 14;
+    const step = Math.max(1, Math.floor(this.viewCount / (this.isSmall ? 5 : 8)));
     ctx.fillStyle = '#64748b';
-    ctx.font = '10px Inter, sans-serif';
+    ctx.font = '9.5px Inter, sans-serif';
     ctx.textAlign = 'center';
 
     for (let i = start; i < end; i += step) {
@@ -385,69 +374,76 @@ class CandlestickChart {
     const change = prev ? latest.close - prev.close : 0;
     const changePct = prev ? (change / prev.close * 100) : 0;
     const isBull = change >= 0;
+    const isSmall = this.isSmall;
+
+    const headerY = isSmall ? 15 : 20;
 
     // Symbol title
     ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 13px Inter, sans-serif';
+    ctx.font = isSmall ? 'bold 11px Inter, sans-serif' : 'bold 13px Inter, sans-serif';
     ctx.textAlign = 'left';
     const title = `${this.symbol.replace('.NS', '')} · 1D · NSE`;
-    ctx.fillText(title, this.padding.left + 4, 22);
+    ctx.fillText(title, this.padding.left + 4, headerY);
 
-    // OHLC values
-    const ohlcParts = [
-      { label: 'haO', val: this._formatPrice(latest.open) },
-      { label: 'haH', val: this._formatPrice(latest.high) },
-      { label: 'haL', val: this._formatPrice(latest.low) },
-      { label: 'haC', val: this._formatPrice(latest.close) },
-    ];
-    let xOff = this.padding.left + ctx.measureText(title).width + 20;
-    ctx.font = '11px Inter, sans-serif';
-    for (const part of ohlcParts) {
-      ctx.fillStyle = '#64748b';
-      ctx.fillText(part.label, xOff, 22);
-      xOff += ctx.measureText(part.label).width + 3;
-      ctx.fillStyle = '#0f172a';
-      ctx.fillText(part.val + '  ', xOff, 22);
-      xOff += ctx.measureText(part.val + '  ').width + 2;
+    if (!isSmall) {
+      // OHLC values on larger screens
+      const ohlcParts = [
+        { label: 'haO', val: this._formatPrice(latest.open) },
+        { label: 'haH', val: this._formatPrice(latest.high) },
+        { label: 'haL', val: this._formatPrice(latest.low) },
+        { label: 'haC', val: this._formatPrice(latest.close) },
+      ];
+      let xOff = this.padding.left + ctx.measureText(title).width + 16;
+      ctx.font = '11px Inter, sans-serif';
+      for (const part of ohlcParts) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(part.label, xOff, headerY);
+        xOff += ctx.measureText(part.label).width + 3;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(part.val + '  ', xOff, headerY);
+        xOff += ctx.measureText(part.val + '  ').width + 2;
+      }
+
+      // Change badge
+      ctx.fillStyle = isBull ? '#26a69a' : '#ef5350';
+      const changeStr = `${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+      ctx.fillText(changeStr, xOff, headerY);
     }
-
-    // Change badge
-    ctx.fillStyle = isBull ? '#26a69a' : '#ef5350';
-    const changeStr = `${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
-    ctx.fillText(changeStr, xOff, 22);
 
     // Trend badge
     if (this.trend) {
-      const badgeX = this.totalW - this.priceAxisWidth - 80;
+      const badgeW = isSmall ? 56 : 70;
+      const badgeH = isSmall ? 16 : 18;
+      const badgeX = this.totalW - this.priceAxisWidth - badgeW - 6;
       ctx.fillStyle = this.trend === 'bullish' ? '#26a69a' : '#ef5350';
       ctx.beginPath();
-      ctx.roundRect(badgeX, 8, 72, 18, 4);
+      ctx.roundRect(badgeX, isSmall ? 4 : 7, badgeW, badgeH, 4);
       ctx.fill();
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.font = `bold ${isSmall ? 9 : 10}px Inter, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(this.trend.toUpperCase(), badgeX + 36, 21);
+      ctx.fillText(this.trend.toUpperCase(), badgeX + badgeW / 2, isSmall ? 15 : 20);
     }
 
-    // Company name subtitle
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(this.companyName, this.padding.left + 4, 36);
+    if (!isSmall) {
+      // Company name subtitle
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(this.companyName, this.padding.left + 4, 34);
+    }
   }
 
-  // â”€â”€ Draw: Pattern Highlight Annotations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Pattern Highlight Annotations ───────────────────────────
   _drawHighlightAnnotations(start, end, priceMin, priceMax, candleW) {
     if (!this.highlightIndices.length || !this.matchResult) return;
     const ctx = this.ctx;
-    const labels = ['Candle 1\n(Both Wicks)', 'Candle 2\n(Directional)', 'Candle 3\n(Body Cross)'];
     const colors = ['#f6c90e', '#2196F3', '#26a69a'];
 
     this.highlightIndices.forEach((idx, labelIdx) => {
       if (idx < start || idx >= end) return;
       const c = this.candles[idx];
       const x = this._xForIndex(idx);
-      const highY = this._yForPrice(c.high, priceMin, priceMax);
       const color = colors[labelIdx];
 
       // Vertical bracket line
@@ -455,8 +451,8 @@ class CandlestickChart {
       ctx.lineWidth = 1;
       ctx.setLineDash([2, 3]);
       ctx.beginPath();
-      ctx.moveTo(x, this.padding.top);
-      ctx.lineTo(x, this.padding.top + this.chartH);
+      ctx.moveTo(x, this.padTop);
+      ctx.lineTo(x, this.padTop + this.chartH);
       ctx.stroke();
       ctx.setLineDash([]);
     });
@@ -479,7 +475,7 @@ class CandlestickChart {
     levels.forEach(lvl => {
       if (!lvl.price || isNaN(lvl.price)) return;
       const y = this._yForPrice(lvl.price, priceMin, priceMax);
-      if (y < this.padding.top - 5 || y > this.padding.top + this.chartH + 5) return;
+      if (y < this.padTop - 5 || y > this.padTop + this.chartH + 5) return;
 
       // Dashed horizontal price line across chart
       ctx.strokeStyle = lvl.color;
@@ -506,7 +502,7 @@ class CandlestickChart {
     });
   }
 
-  // â”€â”€ Draw: Crosshair â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Draw: Crosshair ───────────────────────────────────────────────
   _drawCrosshair(priceMin, priceMax) {
     const ctx = this.ctx;
     const x = this.crosshairX;
@@ -522,14 +518,14 @@ class CandlestickChart {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(x, this.padding.top);
-    ctx.lineTo(x, this.padding.top + this.chartH);
+    ctx.moveTo(x, this.padTop);
+    ctx.lineTo(x, this.padTop + this.chartH);
     ctx.stroke();
 
     ctx.setLineDash([]);
 
     // Price label on axis
-    const price = priceMin + (priceMax - priceMin) * (1 - (y - this.padding.top) / this.chartH);
+    const price = priceMin + (priceMax - priceMin) * (1 - (y - this.padTop) / this.chartH);
     if (price > 0) {
       const axisX = this.padding.left + this.chartW + 2;
       ctx.fillStyle = '#cbd5e1';
