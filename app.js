@@ -456,16 +456,38 @@ const App = (() => {
       scheduleAutoRefresh();
     }, msUntilClose);
   }
+
+  // ── Render Failed Tickers Log ─────────────────────────────────────
+  function renderFailedLog() {
+    const body = dom.failedBody ? dom.failedBody() : null;
+    const countEl = dom.failedCount ? dom.failedCount() : null;
+    if (countEl) countEl.textContent = state.failed.length;
+    if (!body) return;
+
+    if (!state.failed.length) {
+      body.innerHTML = '<div style="padding:10px;color:var(--text-muted);font-size:11px">No failed tickers</div>';
+      return;
+    }
+
+    body.innerHTML = state.failed.map(r => `
+      <div class="failed-log-item">
+        <span class="failed-log-sym">${r.symbol.replace('.NS', '')}</span>
+        <span class="failed-log-reason">${r.reason || 'Pattern conditions not met'}</span>
+      </div>
+    `).join('');
+  }
+
   function toggleFailedLog() {
     const p = dom.failedPanel();
     const a = dom.failedArrow();
-    if (p && a) {
-      if (p.classList.contains('open')) {
-        p.classList.remove('open');
-        a.textContent = '';
+    const b = dom.failedBody();
+    if (p && a && b) {
+      if (b.classList.contains('open')) {
+        b.classList.remove('open');
+        a.textContent = '▼';
       } else {
-        p.classList.add('open');
-        a.textContent = '';
+        b.classList.add('open');
+        a.textContent = '▲';
       }
     }
   }
