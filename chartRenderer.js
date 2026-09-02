@@ -16,9 +16,7 @@ class CandlestickChart {
     this.rawCandles = [];  // Original OHLCV (kept for stats reference)
 
     // Layout
-    this.padding = { top: 50, right: 80, bottom: 60, left: 10 };
-    this.volumePaneHeight = 60;
-    this.priceAxisWidth = 75;
+    this.padding = { left: 10 };
 
     // State
     this.viewStart = 0;      // Index of first visible candle
@@ -92,6 +90,9 @@ class CandlestickChart {
   }
   get volHeight() {
     return this.isSmall ? 24 : 50;
+  }
+  get priceAxisWidth() {
+    return this.isSmall ? 80 : 96;
   }
   get chartW() {
     return this.totalW - this.padding.left - this.priceAxisWidth;
@@ -495,12 +496,13 @@ class CandlestickChart {
     const { entry, sl, t1, t2, slRef } = this.matchResult.levels;
     const ctx = this.ctx;
     const axisX = this.padding.left + this.chartW;
+    const isSmall = this.isSmall;
 
     const levels = [
-      { label: `SL (${slRef || 'C1'})`, price: sl, color: '#ef5350', bg: 'rgba(239, 83, 80, 0.9)' },
-      { label: 'Entry', price: entry, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.9)' },
-      { label: 'TGT 1 (1:1.5)', price: t1, color: '#10b981', bg: 'rgba(16, 185, 129, 0.9)' },
-      { label: 'TGT 2 (1:2)', price: t2, color: '#059669', bg: 'rgba(5, 150, 105, 0.9)' },
+      { label: `SL (${slRef || 'C2'})`, price: sl, color: '#ef5350', bg: '#ef5350' },
+      { label: 'Entry', price: entry, color: '#3b82f6', bg: '#3b82f6' },
+      { label: 'TGT 1 (1:1.5)', price: t1, color: '#10b981', bg: '#10b981' },
+      { label: 'TGT 2 (1:2)', price: t2, color: '#059669', bg: '#059669' },
     ];
 
     levels.forEach(lvl => {
@@ -518,18 +520,34 @@ class CandlestickChart {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Level pill badge on right axis
-      const badgeW = this.priceAxisWidth - 4;
-      const badgeH = 16;
+      // Floating Tag on the left side of the chart line
+      ctx.font = `bold ${isSmall ? 8.5 : 10}px Inter, sans-serif`;
+      const fullText = `${lvl.label}: ₹${this._formatPrice(lvl.price)}`;
+      const tagW = ctx.measureText(fullText).width + 10;
+      const tagH = isSmall ? 15 : 17;
+      const tagX = this.padding.left + 8;
+
+      ctx.fillStyle = lvl.bg;
+      ctx.beginPath();
+      ctx.roundRect(tagX, y - tagH / 2, tagW, tagH, 3);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(fullText, tagX + tagW / 2, y + (isSmall ? 3 : 3.5));
+
+      // Level price badge on right axis
+      const badgeW = this.priceAxisWidth - 6;
+      const badgeH = isSmall ? 15 : 17;
       ctx.fillStyle = lvl.bg;
       ctx.beginPath();
       ctx.roundRect(axisX + 2, y - badgeH / 2, badgeW, badgeH, 3);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 9px Inter, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${lvl.label}: ${this._formatPrice(lvl.price)}`, axisX + 4, y + 3.5);
+      ctx.font = `bold ${isSmall ? 9 : 10}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(this._formatPrice(lvl.price), axisX + badgeW / 2 + 2, y + (isSmall ? 3 : 3.5));
     });
   }
 
