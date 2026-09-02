@@ -154,7 +154,30 @@ class CandlestickChart {
     const { min: priceMin, max: priceMax } = this._getPriceRange(vis);
     const volMax = this._getVolumeMax(vis);
     const candleW = this.chartW / this.viewCount;
-    cons  // ── Draw: Grid Lines ─────────────────────────────────────────────
+    const bodyW = Math.max(1, candleW * 0.6);
+
+    this._drawGrid(priceMin, priceMax);
+    this._drawSMA(start, end, priceMin, priceMax, candleW);
+    this._drawCandles(start, end, vis, priceMin, priceMax, candleW, bodyW);
+    this._drawVolume(start, end, vis, volMax, candleW);
+    this._drawPriceAxis(priceMin, priceMax);
+    this._drawTimeAxis(start, end, vis, candleW);
+    this._drawHeader();
+    this._drawHighlightAnnotations(start, end, priceMin, priceMax, candleW);
+    this._drawTradeLevels(priceMin, priceMax);
+    if (this.crosshairX >= 0) this._drawCrosshair(priceMin, priceMax);
+  }
+
+  // ── Draw: Empty State ─────────────────────────────────────────────
+  _drawEmpty() {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '16px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Select a stock to view chart', this.totalW / 2, this.totalH / 2);
+  }
+
+  // ── Draw: Grid Lines ─────────────────────────────────────────────
   _drawGrid(priceMin, priceMax) {
     const ctx = this.ctx;
     const steps = this.isSmall ? 4 : 6;
