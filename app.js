@@ -164,7 +164,9 @@ const App = (() => {
       applyFilter();
 
       // Populate failed tickers log
-      renderFailedLog();
+      if (typeof renderFailedLog === 'function') {
+        renderFailedLog();
+      }
 
       // Auto-select first matched stock
       if (state.matched.length > 0 && !state.activeSymbol) {
