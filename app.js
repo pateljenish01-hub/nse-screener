@@ -207,6 +207,7 @@ const App = (() => {
     const shortSym = symbol.replace('.NS', '');
     const isBull = trend === 'bullish';
     const changeCls = stats.changePct >= 0 ? 'bull' : 'bear';
+    const changeStr = `${stats.changePct >= 0 ? '+' : ''}${stats.changePct}%`;
     const lvl = result.levels || {};
     const levelsHtml = lvl.sl ? `
       <div class="item-levels">
