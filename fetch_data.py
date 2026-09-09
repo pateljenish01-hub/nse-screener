@@ -1,4 +1,4 @@
-﻿import re
+import re
 import json
 import urllib.request
 import concurrent.futures
@@ -11,7 +11,7 @@ def get_symbols():
     return matches
 
 def fetch_symbol(sym):
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=3mo"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=6mo"
     headers = {"User-Agent": "Mozilla/5.0"}
     req = urllib.request.Request(url, headers=headers)
     try:
