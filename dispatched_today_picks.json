@@ -1,0 +1,41 @@
+{
+  "date": "Tue, 06-Oct-2026",
+  "picks": [
+    {
+      "symbol": "THELEELA",
+      "direction": "BUY",
+      "trigger": 577.60,
+      "sl": 568.94,
+      "t1": 586.26,
+      "t2": 590.60,
+      "role": "Zone 4 Primary Long"
+    },
+    {
+      "symbol": "ICICIGI",
+      "direction": "BUY",
+      "trigger": 1600.00,
+      "sl": 1576.00,
+      "t1": 1624.00,
+      "t2": 1636.00,
+      "role": "Zone 4 Primary Long"
+    },
+    {
+      "symbol": "CUB",
+      "direction": "BUY",
+      "trigger": 227.65,
+      "sl": 224.24,
+      "t1": 231.06,
+      "t2": 232.77,
+      "role": "Zone 4 Primary Long"
+    },
+    {
+      "symbol": "FIRSTCRY",
+      "direction": "SELL",
+      "trigger": 172.00,
+      "sl": 174.58,
+      "t1": 169.42,
+      "t2": 168.13,
+      "role": "Hedge Short"
+    }
+  ]
+}
