@@ -66,22 +66,39 @@ def get_latest_data():
         raise ValueError("No candle data found in market_data.js")
     latest_date = max(sample_dates)
     
-    # Extract Nifty 50 PREVIOUS session close from market_data.js
-    nifty_close = 22716.20  # fallback
-    nifty_candles = md.get('^NSEI', [])
-    if is_post_market:
-        completed_nifty = [c for c in nifty_candles if c.get('date') <= today_str and c.get('close') is not None]
-    else:
-        completed_nifty = [c for c in nifty_candles if c.get('date') < today_str and c.get('close') is not None]
-    if completed_nifty:
-        nifty_close = float(completed_nifty[-1]['close'])
-    elif nifty_candles:
-        # fallback: second-to-last candle if today filter doesn't work
-        past = [c for c in nifty_candles if c.get('close') is not None]
-        if len(past) >= 2:
-            nifty_close = float(past[-2]['close'])
-        elif past:
-            nifty_close = float(past[-1]['close'])
+    # Bulletproof dynamic extraction of Nifty 50 PREVIOUS session close
+    nifty_close = None
+    try:
+        url_n = 'https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?interval=1d&range=10d'
+        req_n = urllib.request.Request(url_n, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req_n, timeout=5) as r_n:
+            d_n = json.loads(r_n.read().decode())
+        res_n = d_n['chart']['result'][0]
+        ts_n = res_n.get('timestamp', [])
+        cl_n = res_n.get('indicators', {}).get('quote', [{}])[0].get('close', [])
+        from datetime import timezone
+        for t_val, c_val in zip(reversed(ts_n), reversed(cl_n)):
+            if c_val is not None:
+                dt_c = datetime.fromtimestamp(t_val, tz=timezone.utc).strftime('%Y-%m-%d')
+                if (is_post_market and dt_c <= today_str) or (not is_post_market and dt_c < today_str):
+                    nifty_close = round(float(c_val), 2)
+                    latest_date = dt_c
+                    break
+    except Exception:
+        pass
+
+    # Fallback to market_data.js only if live query fails
+    if nifty_close is None:
+        nifty_candles = md.get('^NSEI', [])
+        if is_post_market:
+            completed_nifty = [c for c in nifty_candles if c.get('date') <= today_str and c.get('close') is not None]
+        else:
+            completed_nifty = [c for c in nifty_candles if c.get('date') < today_str and c.get('close') is not None]
+        if completed_nifty:
+            nifty_close = float(completed_nifty[-1]['close'])
+        elif nifty_candles:
+            past = [c for c in nifty_candles if c.get('close') is not None]
+            nifty_close = float(past[-1]['close']) if past else 22555.75
 
             
     buys = []
