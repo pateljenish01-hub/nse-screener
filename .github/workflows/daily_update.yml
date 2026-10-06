@@ -1,0 +1,39 @@
+name: NSE Screener Pro - Daily Cloud Automation
+on:
+  schedule:
+    # 9:12 AM IST (03:42 UTC Mon-Fri) - Morning Phone Alert & Trade Plan
+    - cron: '42 3 * * 1-5'
+    # 3:45 PM IST (10:15 UTC Mon-Fri) - Evening EOD Audit
+    - cron: '15 10 * * 1-5'
+  workflow_dispatch:
+jobs:
+  run-screener-automation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pandas openpyxl yfinance
+      - name: Morning Alert & Trade Plan Dispatcher (9:12 AM IST)
+        if: github.event.schedule == '42 3 * * 1-5' || github.event_name == 'workflow_dispatch'
+        run: |
+          python send_daily_phone_alert.py
+      - name: Evening EOD Performance Audit (3:45 PM IST)
+        if: github.event.schedule == '15 10 * * 1-5' || github.event_name == 'workflow_dispatch'
+        run: |
+          python run_eod_performance_audit.py
+      - name: Commit and push updated picks & data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add dispatched_today_picks.json market_data.js || true
+          git commit -m "Automated daily data update [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
