@@ -2,40 +2,40 @@
   "date": "Tue, 06-Oct-2026",
   "picks": [
     {
-      "symbol": "THELEELA",
-      "direction": "BUY",
-      "trigger": 577.60,
-      "sl": 568.94,
-      "t1": 586.26,
-      "t2": 590.60,
-      "role": "Zone 4 Primary Long"
-    },
-    {
-      "symbol": "ICICIGI",
-      "direction": "BUY",
-      "trigger": 1600.00,
-      "sl": 1576.00,
-      "t1": 1624.00,
-      "t2": 1636.00,
-      "role": "Zone 4 Primary Long"
-    },
-    {
-      "symbol": "CUB",
-      "direction": "BUY",
-      "trigger": 227.65,
-      "sl": 224.24,
-      "t1": 231.06,
-      "t2": 232.77,
-      "role": "Zone 4 Primary Long"
-    },
-    {
       "symbol": "FIRSTCRY",
       "direction": "SELL",
-      "trigger": 172.00,
+      "trigger": 172.0,
       "sl": 174.58,
       "t1": 169.42,
       "t2": 168.13,
-      "role": "Hedge Short"
+      "role": "Zone 3 Panic Short"
+    },
+    {
+      "symbol": "FACT",
+      "direction": "SELL",
+      "trigger": 731.75,
+      "sl": 742.73,
+      "t1": 720.77,
+      "t2": 715.29,
+      "role": "Zone 3 Panic Short"
+    },
+    {
+      "symbol": "GALLANTT",
+      "direction": "SELL",
+      "trigger": 522.9,
+      "sl": 530.74,
+      "t1": 515.06,
+      "t2": 511.13,
+      "role": "Zone 3 Panic Short"
+    },
+    {
+      "symbol": "ONESOURCE",
+      "direction": "SELL",
+      "trigger": 1488.3,
+      "sl": 1510.62,
+      "t1": 1465.98,
+      "t2": 1454.81,
+      "role": "Zone 3 Panic Short"
     }
   ]
 }
